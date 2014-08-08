@@ -32,7 +32,6 @@ public class Difference {
 	public Difference(File infile1, File infile2) {
 		this.differences = new ArrayList<SAMRecord>();
 		this.readNames = new HashSet<String>();
-		this.one_of_pairs_removed = 0;
 		
 		IOUtil.assertFileIsReadable(infile1);
 		IOUtil.assertFileIsReadable(infile2);
@@ -76,7 +75,14 @@ public class Difference {
 		
 	}
 	
-
+	private void checkSetForRead(SAMRecord rec){
+		if(readNames.contains(rec.getReadName())){
+			readNames.remove(rec.getReadName());
+		}
+		else{
+			readNames.add(rec.getReadName());
+		}
+	}
 	
     private static final class SamHeaderAndIterator {
         final SAMFileHeader header;
