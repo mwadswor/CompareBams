@@ -17,41 +17,66 @@ import htsjdk.samtools.util.IOUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import picard.PicardException;
 
 public class Difference {
 
-	private List<SAMRecord> differences = new ArrayList<SAMRecord>();
+	private List<SAMRecord> differences; 
+	private Set<String> readNames;
+	private Integer one_of_pairs_removed;
 	
 	public Difference(File infile1, File infile2) {
+		this.differences = new ArrayList<SAMRecord>();
+		this.readNames = new HashSet<String>();
+		this.one_of_pairs_removed = 0;
+		
 		IOUtil.assertFileIsReadable(infile1);
 		IOUtil.assertFileIsReadable(infile2);
 		
+		runDifferenceCheck(infile1,infile2);
+
+	}
+	
+	private void runDifferenceCheck(File infile1, File infile2){
 		final SamHeaderAndIterator headerAndIterator1 = openInputs(infile1);
 		final SamHeaderAndIterator headerAndIterator2 = openInputs(infile2);
 		
 		final CloseableIterator<SAMRecord> iterator1 = headerAndIterator1.iterator;
 		final CloseableIterator<SAMRecord> iterator2 = headerAndIterator2.iterator;
-        while (iterator1.hasNext() &&  iterator2.hasNext()) {
-            final SAMRecord rec1 = iterator1.next();
-            final SAMRecord rec2 = iterator2.next();
-            if (rec1 != rec2){
-              
+        
+		while (iterator1.hasNext() &&  iterator2.hasNext()) {
+        
+			SAMRecord rec1 = iterator1.next();
+			SAMRecord rec2 = iterator2.next();
+			
+            System.out.println("I'm in the while loop and rec1 = "+rec1.toString());
+            
+            if (!rec1.getReadName().equals(rec2.getReadName())){
+            	differences.add(rec1);
+            	if(readNames.contains(rec1)){
+            		
+            	}
+            	if(iterator1.hasNext()){
+           			rec1 = iterator1.next();
+            		while(!rec1.getReadName().equals(rec2.getReadName())){
+            			differences.add(rec1);
+            			rec1 = iterator1.next();
+            		}
+            	}
+            	else{
+            		break;
+            	}
             }
         }
-
-		
-		
-		
-		
-		
 		
 		
 	}
 	
-	
+
 	
     private static final class SamHeaderAndIterator {
         final SAMFileHeader header;
