@@ -1,15 +1,9 @@
 package diff;
 
-import htsjdk.samtools.MergingSamRecordIterator;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SAMFileReader;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamFileHeaderMerger;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReader.PrimitiveSamReader;
-import htsjdk.samtools.SamReader.PrimitiveSamReaderToSamReaderAdapter;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.util.CloseableIterator;
@@ -27,11 +21,12 @@ public class Difference {
 
 	private List<SAMRecord> differences; 
 	private Set<String> readNames;
-	private Integer one_of_pairs_removed;
+	private SAMFileHeader header;
 	
 	public Difference(File infile1, File infile2) {
 		this.differences = new ArrayList<SAMRecord>();
 		this.readNames = new HashSet<String>();
+		this.header = null;
 		
 		IOUtil.assertFileIsReadable(infile1);
 		IOUtil.assertFileIsReadable(infile2);
@@ -107,7 +102,11 @@ public class Difference {
         }   
 
         return new SamHeaderAndIterator(header, reader.iterator());
-    }   
+    }
+
+	public void writeOutput(File outfile) {
+		
+	}   
 
 
 }
