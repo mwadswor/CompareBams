@@ -2,6 +2,8 @@ package diff;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReaderFactory;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import picard.PicardException;
 
@@ -105,7 +108,22 @@ public class Difference {
     }
 
 	public void writeOutput(File outfile) {
-		
+		  final SAMFileWriter out = new SAMFileWriterFactory().makeSAMOrBAMWriter(header, true, outfile);
+		  
+		  for(SAMRecord rec : differences){
+			  out.addAlignment(rec);
+		  }
+		  
+		  out.close();
+		  
+//		  String name = outfile.getName();
+//		  String filename = name.substring(0, name.lastIndexOf("."));
+//		  StringBuilder sb = new StringBuilder(filename);
+//		  sb.append(".txt");
+//		  filename = sb.toString();
+		  
+		  System.out.println("The number of reads that only one of the two reads was removed as a duplicate is " + readNames.size());
+		  
 	}   
 
 
