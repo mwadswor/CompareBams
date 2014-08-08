@@ -66,9 +66,7 @@ public class Difference {
             			rec1 = iterator1.next();
             		}
             	}
-            	else{
-            		break;
-            	}
+            
             }
         }
 		
