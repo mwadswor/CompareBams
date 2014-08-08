@@ -54,15 +54,14 @@ public class Difference {
 			
             System.out.println("I'm in the while loop and rec1 = "+rec1.toString());
             
-            if (!rec1.getReadName().equals(rec2.getReadName())){
+            if (!rec1.equals(rec2)){
             	differences.add(rec1);
-            	if(readNames.contains(rec1)){
-            		
-            	}
+            	checkSetForRead(rec1);
             	if(iterator1.hasNext()){
            			rec1 = iterator1.next();
             		while(!rec1.getReadName().equals(rec2.getReadName())){
             			differences.add(rec1);
+            			checkSetForRead(rec1);
             			rec1 = iterator1.next();
             		}
             	}
