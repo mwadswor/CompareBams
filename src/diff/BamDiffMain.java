@@ -37,15 +37,15 @@ public class BamDiffMain {
 
 
 	private void run() {
-		Difference diff = new Difference(infile1, infile2);
-		writeOutput(diff);
+		Difference diff = new Difference(infile1, infile2, outfile);
+//		writeOutput(diff);
 	}
 
 
-	private void writeOutput(Difference diff) {
-		diff.writeOutput(outfile);
-	}
-	
+//	private void writeOutput(Difference diff) {
+//		diff.writeOutput(outfile);
+//	}
+//	
 	
 	
 }
