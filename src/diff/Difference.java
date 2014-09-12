@@ -78,6 +78,7 @@ public class Difference {
 					break;
 				
 				rec1 = iterator1.next();
+				tempCHR = rec1.getReferenceName();
 			}
 			
 			String temp2CHR = Chromosome;
@@ -92,6 +93,7 @@ public class Difference {
 					break;
 				
 				rec2 = iterator2.next();
+				temp2CHR = rec2.getReferenceName();
 			}
 			
 			System.out.println(tempCHR + " == " + temp2CHR);
