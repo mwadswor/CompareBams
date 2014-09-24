@@ -146,7 +146,8 @@ public class Difference {
 		String Key1 = makeKey(rec);
 		if(fileSet.containsKey(Key1)){
 			//System.out.println("in the already there portion of placeReadMap");
-			int value = fileSet.get(Key1)+1;
+			int value = fileSet.get(Key1);
+			value++;
 			fileSet.put(Key1, value);
 		}
 		else{
