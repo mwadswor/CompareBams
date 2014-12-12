@@ -12,11 +12,15 @@ import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.IOUtil;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import picard.PicardException;
@@ -28,8 +32,9 @@ public class Difference {
 	private SAMFileHeader header;
 	private File outfile;
 	private HashMap<String, Integer> chromLengths;
+	private FileWriter output;
 	
-	public Difference(File infile1, File infile2, File output) {
+	public Difference(File infile1, File infile2, File output, boolean isStat) {
 //		this.differences = new ArrayList<SAMRecord>();
 //		this.readNames = new HashSet<String>();
 		this.header = null;
@@ -66,10 +71,134 @@ public class Difference {
 		chromLengths.put("chrX", 155270560);
 		chromLengths.put("chrY", 59373566);
 		chromLengths.put("*", 0);
+		if(isStat == false){
+			runDifferenceCheck(infile1,infile2);
+		}
+		else{
+			getStats(infile1, infile2);
+		}
 
 		runDifferenceCheck(infile1,infile2);
 	}
 	
+	private void getStats(File infile1, File infile2) {
+		final SamHeaderAndIterator headerAndIterator1 = openInputs(infile1);
+		final SamHeaderAndIterator headerAndIterator2 = openInputs(infile2);
+		
+		final CloseableIterator<SAMRecord> iterator1 = headerAndIterator1.iterator;
+		final CloseableIterator<SAMRecord> iterator2 = headerAndIterator2.iterator;
+        
+		HashMap<String, Integer> file1Set = new HashMap<String, Integer>();
+		HashMap<String, Integer>  file2Set = new HashMap<String, Integer>();
+		
+		try {
+			this.output = new FileWriter(outfile);
+			output.write("CHR\tPOS\tSAMTOOLS\tPICARD\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		SAMRecord rec1 = iterator1.next();
+		SAMRecord rec2 = iterator2.next();
+		
+		String CHR = rec1.getReferenceName();
+		
+		while(iterator1.hasNext() && iterator2.hasNext()){
+		
+			String tempCHR = rec1.getReferenceName();
+			while(tempCHR.equals(CHR)){
+				placeReadInMap(file1Set, rec1);
+				if(!iterator1.hasNext()){
+					break;
+				}
+				rec1 = iterator1.next();
+				tempCHR = rec1.getReferenceName();
+			}
+			
+			String tempCHR2 = rec2.getReferenceName();
+			while(tempCHR2.equals(CHR)){
+				placeReadInMap(file2Set, rec2);
+				if(!iterator2.hasNext())
+					break;
+				rec2 = iterator2.next();
+				tempCHR2 = rec2.getReferenceName();
+			}
+			System.out.println("CHR = "+CHR);
+			System.out.println(tempCHR + " = " +tempCHR2);
+			
+			if(tempCHR.equals(tempCHR2))
+				CHR = tempCHR;
+			else{
+				System.out.println("Your bam files are not in the same order");
+				System.exit(1);
+			}
+			
+			System.out.println(CHR);
+			
+			try {
+				printCHR(file1Set, file2Set);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			file1Set.clear();
+			file2Set.clear();
+		}
+		
+		try {
+			output.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private void printCHR(HashMap<String, Integer> file1Set, HashMap<String, Integer> file2Set) throws IOException {
+		for(HashMap.Entry<String, Integer> temp : file1Set.entrySet()){
+			String Key1 = temp.getKey();
+			Integer Value1 = temp.getValue();
+			if(file2Set.containsKey(Key1)){
+				output.write(Key1+"\t"+String.valueOf(Value1)+"\t"+String.valueOf(file2Set.get(Key1))+"\n");
+				file2Set.remove(Key1);
+			}
+			else{
+				output.write(Key1+"\t"+String.valueOf(Value1)+"\t0\n");
+			}
+		}
+		for(HashMap.Entry<String, Integer> temp : file2Set.entrySet()){
+			String Key2 = temp.getKey();
+			Integer Value2 = temp.getValue();
+			output.write(Key2+"\t0\t"+String.valueOf(Value2)+"\n");
+		}
+	}
+
+	private void placeReadInMap(HashMap<String, Integer> fileSet, SAMRecord rec) {
+		String Key1 = makeKey(rec);
+		if(fileSet.containsKey(Key1)){
+			//System.out.println("in the already there portion of placeReadMap");
+			int value = fileSet.get(Key1);
+			value++;
+			fileSet.put(Key1, value);
+		}
+		else{
+			fileSet.put(Key1, 1);
+		}
+		
+	}
+
+	private String makeKey(SAMRecord rec){
+		StringBuilder key = new StringBuilder();
+		String chr = rec.getReferenceName();
+		if(chr.contains("chr")){
+			chr = chr.replace("chr", "");
+		}
+		else if(chr.contains("CHR")){
+			chr = chr.replace("CHR", "");
+		}
+		key.append(chr+"\t"+rec.getAlignmentStart());
+		return key.toString();
+	}
+
 	private void runDifferenceCheck(File infile1, File infile2){
 		
 		final SamHeaderAndIterator headerAndIterator1 = openInputs(infile1);
@@ -320,6 +449,8 @@ public class Difference {
     }   
 
     private SamHeaderAndIterator openInputs(final File f) {
+    	
+    	System.setProperty("java.io.tmpdir", "/fslhome/mwadswor/compute/tmp");
 
 		final SamReaderFactory factory =
 		          SamReaderFactory.makeDefault()
