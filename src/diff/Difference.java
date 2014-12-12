@@ -63,7 +63,7 @@ public class Difference {
 		
 		try {
 			this.output = new FileWriter(outfile);
-			output.write("CHR\tPOS\tSAMTOOLS\tPICARD\n");
+			output.write("#CHR\tPOS\tSAMTOOLS\tPICARD\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -163,7 +163,16 @@ public class Difference {
 			chr = chr.replace("chr", "");
 		}
 		else if(chr.contains("CHR")){
-			chr = chr.replace("CHR", "");
+//			chr = chr.replace("CHR", "");
+		}
+		if(chr.equals("M")){
+			chr = "23";
+		}
+		else if(chr.equals("X")){
+			chr = "24";
+		}
+		else if(chr.equals("Y")){
+			chr = "25";
 		}
 		key.append(chr+"\t"+rec.getAlignmentStart());
 		return key.toString();
